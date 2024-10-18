@@ -32,11 +32,12 @@ pacman::p_load(plotly, tidyverse, reactable, here, scales)
 
 ```{r}
 ## Import data
-cantril
+cantril<-read.csv(here("data/happiness-cantril-ladder.csv"))%>%
+  rename(Country=Entity)
 filtered_data<-cantril%>%
   filter(Year%in%c(2011,2023), Country%in%c("China","India","Uganda",	"Switzerland"))
 wide_data<-filtered_data%>%
-  pivot_wider(names_from = Year,values_from =`Cantril ladder score`,names_prefix = "",names_sep = "_" )
+  pivot_wider(names_from = Year,values_from =`Cantril.ladder.score`,names_prefix = "",names_sep = "_" )
 
 ```
 
@@ -86,11 +87,11 @@ g <- list(
 
 # Create choropleth map
 cantril %>%
-  mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
+  mutate(`Cantril.ladder.score` = round(`Cantril.ladder.score`, 2)) %>%
   plot_geo(width = 940) %>%
   add_trace(
-    z = ~`Cantril ladder score`,
-    color = ~`Cantril ladder score`,
+    z = ~`Cantril.ladder.score`,
+    color = ~`Cantril.ladder.score`,
     zmin = 0, # Set minimum value for color scale
     zmax = 10, # Set maximum value for color scale
     locations = ~Code,
@@ -115,7 +116,7 @@ selected_countries <- c("China","India","Uganda",	"Switzerland") # Replace with 
 filtered_countries <- cantril %>%
   filter(Country %in% selected_countries)
 
-line_chart <- ggplot(filtered_countries, aes(x = Year, y = `Cantril ladder score`, color = Country)) +
+line_chart <- ggplot(filtered_countries, aes(x = Year, y = `Cantril.ladder.score`, color = Country)) +
   geom_line() +
   scale_y_continuous(limits = c(0, 10)) +
   labs(
@@ -149,7 +150,7 @@ shared_cantril_data <- highlight_key(cantril)
 cantril_plotly <- plot_ly(
   shared_cantril_data, 
   x = ~Year, 
-  y = ~`Cantril ladder score`, 
+  y = ~`Cantril.ladder.score`, 
   color = ~Country, 
   type = "scatter", 
   mode = "lines+markers"
@@ -171,10 +172,11 @@ bscols(
 )
 ```
 
+
 <!-- Custom javascript to set default values in the filter: -->
 <script>
 function filter_default() {
-  var default_countries = ["China","India","Uganda",	"Switzerland"]; // Set default countries here
+  var default_countries = [""]; // Set default countries here
   document.getElementById("country_filter").getElementsByClassName("selectized")[0].selectize.setValue(default_countries, false);
 }
 window.onload = filter_default;
