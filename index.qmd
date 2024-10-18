@@ -1,7 +1,7 @@
 ---
 title: "Self-reported life satisfaction, 2011 to 2023"
 subtitle: "Replicating the Our World in Data Grapher"
-author: "YOUR NAME HERE" # Remember to add your name!
+author: "Jingchao Feng" # Remember to add your name!
 date: "16-10-2024"
 theme: united
 ---
@@ -32,9 +32,12 @@ pacman::p_load(plotly, tidyverse, reactable, here, scales)
 
 ```{r}
 ## Import data
-cantril <- 
-  read_csv(here("data/happiness-cantril-ladder.csv")) %>% 
-  rename(Country = Entity)
+cantril
+filtered_data<-cantril%>%
+  filter(Year%in%c(2011,2023), Country%in%c("China","India","Uganda",	"Switzerland"))
+wide_data<-filtered_data%>%
+  pivot_wider(names_from = Year,values_from =`Cantril ladder score`,names_prefix = "",names_sep = "_" )
+
 ```
 
 ### Happiness across the world over time
@@ -54,10 +57,12 @@ The main life evaluation question asked in the poll is the Cantril Life Ladder q
 # In this tab, you will create a table similar to the one on the Our World in Data page. The table should have the following columns:
 # Country, `2011`, `2023`, Absolute change, and Relative change.
 
-
-# Create table
-
-"WRITE_YOUR_CODE_HERE"
+wide_data<-wide_data%>%
+  mutate(
+    `Absolute change`=round(`2023`-`2011`,2),`Relative change`=round(((`2023`-2011)/`2011`)*100,2)
+  )%>%
+  mutate(`Relative change`=scales::percent(`Relative change`))
+reactable(wide_data,defaultColDef = colDef(align="center"))
 ```
 
 
@@ -106,8 +111,23 @@ cantril %>%
 # In this tab, create a simple line chart of the Cantril score over time for a few countries, similar to the one on the Our World in Data page.
 # Note that your chart will not have the ability to filter countries like the one on the Our World in Data page.
 
-# Create line chart
-"WRITE_YOUR_CODE_HERE"
+selected_countries <- c("China","India","Uganda",	"Switzerland") # Replace with actual country names
+filtered_countries <- cantril %>%
+  filter(Country %in% selected_countries)
+
+line_chart <- ggplot(filtered_countries, aes(x = Year, y = `Cantril ladder score`, color = Country)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(
+    title = "Cantril Ladder Score Over Time",
+    x = "Year",
+    y = "Cantril Ladder Score",
+    color = "Country"
+  ) +
+  theme_minimal()
+
+ggplotly(line_chart)
+
 ```
 
 ## 📈 Advanced Chart
@@ -154,7 +174,7 @@ bscols(
 <!-- Custom javascript to set default values in the filter: -->
 <script>
 function filter_default() {
-  var default_countries = ["Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan"]; // Set default countries here
+  var default_countries = ["China","India","Uganda",	"Switzerland"]; // Set default countries here
   document.getElementById("country_filter").getElementsByClassName("selectized")[0].selectize.setValue(default_countries, false);
 }
 window.onload = filter_default;
